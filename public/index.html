@@ -1,39 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Music Downloader</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎵 Music Downloader</title>
+  <style>
+    body {
+      background-color: #1E90FF; /* Blue background */
+      font-family: Arial, sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      width: 250px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border-radius: 5px;
+      border: none;
+      background-color: #fff;
+      color: #1E90FF;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #f0f0f0;
+    }
+
+    #status {
+      margin-bottom: 15px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    #downloadLink {
+      padding: 10px 15px;
+      background-color: #fff;
+      color: #1E90FF;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    #downloadLink:hover {
+      background-color: #f0f0f0;
+    }
+  </style>
 </head>
 <body>
-    <h1>🎵 Music Downloader</h1>
-    <form id="songForm">
-        <input type="text" name="query" placeholder="Enter song name" required />
-        <button type="submit">Download</button>
-    </form>
-    <div id="status"></div>
-    <a id="downloadLink" style="display:none;">Download MP3</a>
+  <h1>🎵 Music Downloader</h1>
 
-    <script>
-        const form = document.getElementById('songForm');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const query = form.query.value;
-            document.getElementById('status').textContent = "🎧 Searching...";
-            document.getElementById('downloadLink').style.display = "none";
+  <form id="songForm">
+    <input type="text" name="query" placeholder="Enter song name" required />
+    <button type="submit">Download</button>
+  </form>
 
-            const res = await fetch(`/play?query=${encodeURIComponent(query)}`);
-            const data = await res.json();
+  <div id="status"></div>
+  <a id="downloadLink" style="display:none;">Download MP3</a>
 
-            if(data.downloadUrl){
-                document.getElementById('status').textContent = `🎶 Found: ${data.title}`;
-                const link = document.getElementById('downloadLink');
-                link.href = data.downloadUrl;
-                link.style.display = 'block';
-                link.textContent = '⬇️ Download MP3';
-            } else {
-                document.getElementById('status').textContent = data.error;
-            }
-        });
-    </script>
+  <script>
+    const form = document.getElementById('songForm');
+    const statusDiv = document.getElementById('status');
+    const downloadLink = document.getElementById('downloadLink');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const query = form.query.value.trim();
+      if (!query) return;
+
+      statusDiv.textContent = "🎧 Searching...";
+      downloadLink.style.display = "none";
+
+      try {
+        const res = await fetch(`/play?query=${encodeURIComponent(query)}`);
+        const data = await res.json();
+
+        if(data.downloadUrl){
+          statusDiv.textContent = `🎶 Found: ${data.title}`;
+          downloadLink.href = data.downloadUrl;
+          downloadLink.style.display = 'inline-block';
+          downloadLink.textContent = '⬇️ Download MP3';
+        } else {
+          statusDiv.textContent = data.error || "💥 Something went wrong!";
+        }
+      } catch(err) {
+        statusDiv.textContent = "💥 Error connecting to server";
+        console.error(err);
+      }
+    });
+  </script>
 </body>
 </html>
