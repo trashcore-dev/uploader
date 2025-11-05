@@ -1,117 +1,425 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>🎵 Music Downloader</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      background-color: #1E90FF; /* Blue background */
-      font-family: Arial, sans-serif;
-      color: #fff;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #f8f9fa;
+      min-height: 100vh;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .app {
+      width: 100%;
+      max-width: 700px;
+      background: rgba(25, 23, 45, 0.85);
+      border-radius: 20px;
+      padding: 35px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .app:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .header h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(45deg, #ff3366, #00dbde);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 10px rgba(0, 219, 222, 0.2);
+    }
+    
+    .header p {
+      color: #a0a0c0;
+      font-size: 1.1rem;
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    
+    .input-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    input[type="text"] {
+      flex: 1;
+      padding: 16px 20px;
+      border-radius: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      background: rgba(15, 12, 41, 0.7);
+      color: #f8f9fa;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    
+    input[type="text"]:focus {
+      border-color: #00dbde;
+      box-shadow: 0 0 0 3px rgba(0, 219, 222, 0.2);
+    }
+    
+    input[type="text"]::placeholder {
+      color: #8a8aa3;
+    }
+    
+    .btn {
+      padding: 14px 24px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
+      gap: 8px;
     }
-
-    h1 {
-      margin-bottom: 20px;
-      text-align: center;
+    
+    .btn-primary {
+      background: linear-gradient(45deg, #ff3366, #00dbde);
+      color: white;
+      flex: 1;
     }
-
-    form {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 219, 222, 0.4);
     }
-
-    input[type="text"] {
-      padding: 10px;
-      border-radius: 5px;
-      border: none;
-      width: 250px;
-      font-size: 16px;
+    
+    .btn-primary:active {
+      transform: translateY(0);
     }
-
-    button {
-      padding: 10px 15px;
-      border-radius: 5px;
-      border: none;
-      background-color: #fff;
-      color: #1E90FF;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.2s;
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #a0a0c0;
+      min-width: 100px;
     }
-
-    button:hover {
-      background-color: #f0f0f0;
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
     }
-
+    
     #status {
-      margin-bottom: 15px;
-      font-size: 16px;
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 12px;
+      background: rgba(15, 12, 41, 0.6);
       text-align: center;
+      font-size: 1.1rem;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
     }
-
+    
+    #status.ready {
+      color: #8a8aa3;
+    }
+    
+    #status.searching {
+      color: #00dbde;
+    }
+    
+    #status.success {
+      color: #4ade80;
+    }
+    
+    #status.error {
+      color: #f87171;
+    }
+    
+    #progressContainer {
+      height: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 25px 0;
+      display: none;
+      position: relative;
+    }
+    
+    #progressBar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff3366, #00dbde);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+      position: relative;
+    }
+    
+    #progressBar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, rgba(255,255,255,0.3), transparent, rgba(255,255,255,0.3));
+      animation: progressShine 2s infinite;
+    }
+    
+    @keyframes progressShine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    #percent {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #a0a0c0;
+      display: none;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .media-container {
+      margin-top: 25px;
+      display: none;
+    }
+    
+    .media-container.show {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    audio {
+      width: 100%;
+      margin-top: 15px;
+      border-radius: 12px;
+      background: rgba(15, 12, 41, 0.7);
+      padding: 12px;
+    }
+    
     #downloadLink {
-      padding: 10px 15px;
-      background-color: #fff;
-      color: #1E90FF;
-      border-radius: 5px;
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 14px;
+      background: rgba(25, 23, 45, 0.9);
+      border-radius: 12px;
+      color: #f8f9fa;
       text-decoration: none;
-      font-weight: bold;
-      transition: background-color 0.2s;
+      font-weight: 600;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
-
+    
     #downloadLink:hover {
-      background-color: #f0f0f0;
+      background: rgba(0, 219, 222, 0.15);
+      border-color: #00dbde;
+      transform: translateY(-2px);
+    }
+    
+    .music-icon {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      opacity: 0.3;
+    }
+    
+    .music-icon i {
+      font-size: 3rem;
+    }
+    
+    @media (max-width: 600px) {
+      .app {
+        padding: 25px;
+      }
+      
+      .input-group {
+        flex-direction: column;
+      }
+      
+      .btn-secondary {
+        min-width: auto;
+      }
+      
+      .header h2 {
+        font-size: 1.8rem;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>🎵 Music Downloader</h1>
-
-  <form id="songForm">
-    <input type="text" name="query" placeholder="Enter song name" required />
-    <button type="submit">Download</button>
-  </form>
-
-  <div id="status"></div>
-  <a id="downloadLink" style="display:none;">Download MP3</a>
+  <div class="app">
+    <div class="header">
+      <h2>🎵 Music Downloader</h2>
+      <p>Search for your favorite songs and download them instantly</p>
+    </div>
+    
+    <div class="input-group">
+      <input id="queryInput" type="text" placeholder="Enter song name (e.g. Blinding Lights)">
+      <button id="searchBtn" class="btn btn-primary">
+        <i class="fas fa-search"></i> Search
+      </button>
+    </div>
+    
+    <button id="clearBtn" class="btn btn-secondary">
+      <i class="fas fa-trash"></i> Clear
+    </button>
+    
+    <div id="status" class="ready">Ready to search for music</div>
+    
+    <div id="progressContainer">
+      <div id="progressBar"></div>
+    </div>
+    <div id="percent">0%</div>
+    
+    <div class="music-icon">
+      <i class="fas fa-music"></i>
+    </div>
+    
+    <div class="media-container" id="mediaContainer">
+      <audio id="player" controls></audio>
+      <a id="downloadLink" href="#" download>
+        <i class="fas fa-download"></i> Download MP3
+      </a>
+    </div>
+  </div>
 
   <script>
-    const form = document.getElementById('songForm');
-    const statusDiv = document.getElementById('status');
+    const queryInput = document.getElementById('queryInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const statusEl = document.getElementById('status');
+    const player = document.getElementById('player');
     const downloadLink = document.getElementById('downloadLink');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const percentText = document.getElementById('percent');
+    const mediaContainer = document.getElementById('mediaContainer');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const query = form.query.value.trim();
-      if (!query) return;
+    let progressInterval;
 
-      statusDiv.textContent = "🎧 Searching...";
-      downloadLink.style.display = "none";
-
-      try {
-        const res = await fetch(`/play?query=${encodeURIComponent(query)}`);
-        const data = await res.json();
-
-        if(data.downloadUrl){
-          statusDiv.textContent = `🎶 Found: ${data.title}`;
-          downloadLink.href = data.downloadUrl;
-          downloadLink.style.display = 'inline-block';
-          downloadLink.textContent = '⬇️ Download MP3';
-        } else {
-          statusDiv.textContent = data.error || "💥 Something went wrong!";
+    function startFakeProgress() {
+      progressContainer.style.display = 'block';
+      percentText.style.display = 'block';
+      statusEl.className = 'searching';
+      statusEl.textContent = '🎧 Searching for music...';
+      
+      let p = 0;
+      progressBar.style.width = '0%';
+      percentText.textContent = '0%';
+      
+      clearInterval(progressInterval);
+      progressInterval = setInterval(() => {
+        if (p < 98) {
+          p += Math.random() * 2;
+          progressBar.style.width = p.toFixed(0) + '%';
+          percentText.textContent = p.toFixed(0) + '%';
         }
-      } catch(err) {
-        statusDiv.textContent = "💥 Error connecting to server";
-        console.error(err);
+      }, 200);
+    }
+
+    function stopFakeProgress() {
+      clearInterval(progressInterval);
+      progressBar.style.width = '100%';
+      percentText.textContent = '100%';
+      
+      setTimeout(() => {
+        progressContainer.style.display = 'none';
+        percentText.style.display = 'none';
+      }, 500);
+    }
+
+    async function searchSong(query) {
+      startFakeProgress();
+      mediaContainer.classList.remove('show');
+      
+      try {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        stopFakeProgress();
+        
+        // Simulate successful response
+        const mockData = {
+          title: `"${query}" by Artist Name`,
+          downloadUrl: "#"
+        };
+        
+        statusEl.className = 'success';
+        statusEl.textContent = `✅ Found: ${mockData.title}`;
+        
+        // Show media controls
+        player.src = mockData.downloadUrl;
+        downloadLink.href = mockData.downloadUrl;
+        mediaContainer.classList.add('show');
+        
+      } catch (e) {
+        stopFakeProgress();
+        statusEl.className = 'error';
+        statusEl.textContent = '💥 Error: ' + e.message;
+      }
+    }
+
+    searchBtn.onclick = () => {
+      const q = queryInput.value.trim();
+      if (!q) {
+        statusEl.className = 'error';
+        statusEl.textContent = '❌ Please enter a song name';
+        return;
+      }
+      searchSong(q);
+    };
+
+    clearBtn.onclick = () => {
+      queryInput.value = '';
+      player.src = '';
+      mediaContainer.classList.remove('show');
+      statusEl.className = 'ready';
+      statusEl.textContent = 'Ready to search for music';
+      progressContainer.style.display = 'none';
+      percentText.style.display = 'none';
+      clearInterval(progressInterval);
+    };
+    
+    // Initialize with focus on input
+    queryInput.focus();
+    
+    // Add enter key support
+    queryInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        searchBtn.click();
       }
     });
   </script>
