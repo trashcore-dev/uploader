@@ -3,84 +3,229 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>🎵 Music Downloader</title>
+  <title>🎵Trash Music Downloader</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
   <style>
-    body {
-      background: linear-gradient(180deg,#1E90FF,#1565c0);
-      font-family: system-ui, sans-serif;
-      color: white;
+    * {
       margin: 0;
-      height: 100vh;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #f8fafc;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 20px;
+      line-height: 1.5;
     }
+
     .app {
-      width: 90%;
-      max-width: 700px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 15px;
-      padding: 25px;
-      box-shadow: 0 6px 25px rgba(0,0,0,0.25);
-      backdrop-filter: blur(6px);
-    }
-    input[type=text] {
       width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      margin-bottom: 15px;
-      background: rgba(255,255,255,0.15);
-      color: #fff;
-      font-size: 15px;
+      max-width: 680px;
+      background: rgba(20, 18, 38, 0.75);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    h2 {
+      font-size: 32px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #8a2be2, #00dbde);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #a0a0c0;
+      font-size: 16px;
+      margin-bottom: 32px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 16px 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.25);
+      color: white;
+      font-size: 16px;
       outline: none;
+      font-weight: 500;
+      transition: all 0.25s ease;
     }
+
+    input[type="text"]:focus {
+      border-color: #8a2be2;
+      box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.2);
+    }
+
+    input[type="text"]::placeholder {
+      color: #8a8aa3;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+    }
+
     button {
-      padding: 10px 15px;
-      border-radius: 10px;
+      flex: 1;
+      padding: 14px;
+      border-radius: 16px;
       border: none;
-      font-weight: bold;
+      font-weight: 600;
+      font-size: 16px;
       cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
-    .primary { background: white; color: #1E90FF; }
-    .ghost { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); }
-    #status { margin: 10px 0; }
+
+    .primary {
+      background: linear-gradient(90deg, #8a2be2, #6a0dad);
+      color: white;
+      font-weight: 600;
+    }
+
+    .primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(138, 43, 226, 0.4);
+    }
+
+    .primary:active {
+      transform: translateY(0);
+    }
+
+    .ghost {
+      background: transparent;
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .ghost:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    #status {
+      margin: 24px 0;
+      padding: 16px;
+      text-align: center;
+      font-size: 16px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.2);
+      color: #cbd5e1;
+      min-height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     #progressContainer {
       height: 8px;
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       overflow: hidden;
-      margin-top: 8px;
+      margin: 20px 0 10px;
       display: none;
     }
+
     #progressBar {
-      height: 8px;
+      height: 100%;
       width: 0%;
-      background: white;
-      transition: width 0.2s linear;
+      background: linear-gradient(90deg, #8a2be2, #00dbde);
+      border-radius: 6px;
+      transition: width 0.3s ease;
     }
+
     #percent {
-      margin-top: 5px;
-      font-size: 13px;
-      color: rgba(255,255,255,0.9);
+      text-align: center;
+      font-size: 14px;
+      color: #a0a0c0;
       display: none;
+      margin-bottom: 10px;
     }
-    audio { width:100%; margin-top:10px; border-radius:8px; display:none; }
-    a { color:#fff; text-decoration:none; font-weight:bold; display:none; }
+
+    audio {
+      width: 100%;
+      margin-top: 20px;
+      border-radius: 14px;
+      display: none;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+    }
+
+    a {
+      display: none;
+      text-align: center;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(138, 43, 226, 0.15);
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 16px;
+      border: 1px solid rgba(138, 43, 226, 0.3);
+      transition: all 0.25s ease;
+    }
+
+    a:hover {
+      background: rgba(138, 43, 226, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 24px 0;
+    }
   </style>
 </head>
 <body>
   <div class="app">
-    <h2>🎶 Music Downloader</h2>
-    <input id="queryInput" type="text" placeholder="Enter song name (e.g. Not Like Us)">
-    <button id="searchBtn" class="primary">Search</button>
-    <button id="clearBtn" class="ghost">Clear</button>
+    <h2>🎵 Trash Music Downloader</h2>
+    <p class="subtitle">Search, stream, and download your favorite tracks instantly</p>
+    
+    <div class="input-group">
+      <input id="queryInput" type="text" placeholder="Enter song name (e.g. Blinding Lights)">
+    </div>
+    
+    <div class="button-group">
+      <button id="searchBtn" class="primary">Search</button>
+      <button id="clearBtn" class="ghost">Clear</button>
+    </div>
+
     <div id="status">Ready.</div>
 
+    <div id="percent">0%</div>
     <div id="progressContainer">
       <div id="progressBar"></div>
     </div>
-    <div id="percent">0%</div>
+
+    <div class="divider"></div>
 
     <audio id="player" controls></audio>
     <a id="downloadLink" href="#" download>⬇️ Download MP3</a>
@@ -106,7 +251,7 @@
       progressBar.style.width = '0%';
       percentText.textContent = '0%';
       progressInterval = setInterval(() => {
-        if (p < 98) { // stop slightly below 100% until finished
+        if (p < 98) {
           p += Math.random() * 2;
           progressBar.style.width = p.toFixed(0) + '%';
           percentText.textContent = p.toFixed(0) + '%';
@@ -138,7 +283,7 @@
           player.src = data.downloadUrl;
           player.style.display = 'block';
           downloadLink.href = data.downloadUrl;
-          downloadLink.style.display = 'inline-block';
+          downloadLink.style.display = 'block';
         } else {
           statusEl.textContent = '❌ Song not found or failed.';
         }
