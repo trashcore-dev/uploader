@@ -14,65 +14,62 @@ app.use(express.static("public"));
 const tempDir = path.join(__dirname, "temp");
 fs.ensureDirSync(tempDir);
 
-// Endpoint to search and download MP3
 app.get("/play", async (req, res) => {
-    try {
-        const query = req.query.query;
-        if (!query) return res.json({ error: "🎵 Provide a song name!" });
-        if (query.length > 100) return res.json({ error: "📝 Song name too long! Max 100 chars." });
+  const query = req.query.query;
+  if (!query) return res.json({ error: "🎵 Provide a song name!" });
+  if (query.length > 100) return res.json({ error: "📝 Song name too long! Max 100 chars." });
 
-        // Search YouTube
-        const searchResults = await ytsr(`${query} official`, { limit: 5 });
-        const video = searchResults.items.find(item => item.type === "video");
-        if (!video) return res.json({ error: "😕 Couldn't find that song. Try another one!" });
+  try {
+    // 1️⃣ Search YouTube
+    const searchResults = await ytsr(`${query} official`, { limit: 5 });
+    const video = searchResults.items.find(item => item.type === "video");
 
-        // Call API to get MP3 (your existing API)
-        const apiUrl = `https://api.privatezia.biz.id/api/downloader/ytmp3?url=${encodeURIComponent(video.url)}`;
-        const apiResp = await axios.get(apiUrl);
-        const apiData = apiResp.data;
+    if (!video) return res.json({ error: "😕 Couldn't find that song. Try another one!" });
 
-        if (!apiData.status || !apiData.result?.downloadUrl) throw new Error("API failed to fetch track!");
+    // 2️⃣ Call MP3 API with timeout
+    const apiUrl = `https://api.privatezia.biz.id/api/downloader/ytmp3?url=${encodeURIComponent(video.url)}`;
+    const apiResp = await axios.get(apiUrl, { timeout: 15000 }); // 15 seconds max
+    const apiData = apiResp.data;
 
-        const timestamp = Date.now();
-        const fileName = `audio_${timestamp}.mp3`;
-        const filePath = path.join(tempDir, fileName);
+    if (!apiData.status || !apiData.result?.downloadUrl) 
+      return res.json({ error: "💥 Failed to fetch MP3 from API" });
 
-        // Download MP3
-        const audioResp = await axios({
-            method: "get",
-            url: apiData.result.downloadUrl,
-            responseType: "stream",
-            timeout: 600000
-        });
+    // 3️⃣ Respond immediately with download URL
+    const timestamp = Date.now();
+    const fileName = `audio_${timestamp}.mp3`;
+    const filePath = path.join(tempDir, fileName);
 
+    // Download MP3 to temp folder asynchronously (doesn't block response)
+    axios({
+      method: "get",
+      url: apiData.result.downloadUrl,
+      responseType: "stream",
+      timeout: 60000, // 1 minute
+    })
+      .then(audioResp => {
         const writer = fs.createWriteStream(filePath);
         audioResp.data.pipe(writer);
-
-        await new Promise((resolve, reject) => {
-            writer.on("finish", resolve);
-            writer.on("error", reject);
+        writer.on("finish", () => {
+          // Optional: auto-delete after 10 minutes
+          setTimeout(() => fs.existsSync(filePath) && fs.unlinkSync(filePath), 10 * 60 * 1000);
         });
+        writer.on("error", err => console.error("Download error:", err));
+      })
+      .catch(err => console.error("Stream download failed:", err));
 
-        if (!fs.existsSync(filePath) || fs.statSync(filePath).size === 0) throw new Error("Download failed or empty file!");
+    // Send response to frontend immediately
+    res.json({
+      title: apiData.result.title || video.title,
+      downloadUrl: apiData.result.downloadUrl // use API URL directly for fast download
+    });
 
-        // Respond with download link
-        res.json({
-            title: apiData.result.title || video.title,
-            downloadUrl: `/temp/${fileName}`
-        });
-
-        // Optional: auto-delete after 10 minutes
-        setTimeout(() => {
-            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        }, 10 * 60 * 1000);
-
-    } catch (error) {
-        console.error("Play endpoint error:", error);
-        res.json({ error: error.message });
-    }
+  } catch (err) {
+    console.error("Play endpoint error:", err);
+    res.json({ error: "💥 An unexpected error occurred. Try again!" });
+  }
 });
 
-// Serve temp files
+// Serve temp files if needed
 app.use("/temp", express.static(tempDir));
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
