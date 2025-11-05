@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Music Downloader</title>
+</head>
+<body>
+    <h1>🎵 Music Downloader</h1>
+    <form id="songForm">
+        <input type="text" name="query" placeholder="Enter song name" required />
+        <button type="submit">Download</button>
+    </form>
+    <div id="status"></div>
+    <a id="downloadLink" style="display:none;">Download MP3</a>
+
+    <script>
+        const form = document.getElementById('songForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = form.query.value;
+            document.getElementById('status').textContent = "🎧 Searching...";
+            document.getElementById('downloadLink').style.display = "none";
+
+            const res = await fetch(`/play?query=${encodeURIComponent(query)}`);
+            const data = await res.json();
+
+            if(data.downloadUrl){
+                document.getElementById('status').textContent = `🎶 Found: ${data.title}`;
+                const link = document.getElementById('downloadLink');
+                link.href = data.downloadUrl;
+                link.style.display = 'block';
+                link.textContent = '⬇️ Download MP3';
+            } else {
+                document.getElementById('status').textContent = data.error;
+            }
+        });
+    </script>
+</body>
+</html>
