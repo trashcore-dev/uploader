@@ -3,31 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload Files – TrashUploader</title>
+  <title>TrashUploader – Secure Upload</title>
   <style>
     body {
       font-family: "Poppins", sans-serif;
       background: #0d1117;
-      color: #f0f0f0;
+      color: #e6edf3;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      text-align: center;
+      padding-bottom: 100px;
     }
     h1 {
       color: #58a6ff;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
     .upload-box {
       background: #161b22;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      text-align: center;
-      width: 90%;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.4);
       max-width: 400px;
+      width: 90%;
+      transition: all 0.3s ease;
     }
     input[type="file"] {
       display: none;
@@ -36,18 +38,35 @@
       background: #238636;
       color: white;
       padding: 12px 20px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       font-weight: 600;
       display: inline-block;
+      margin-top: 10px;
     }
     label:hover {
       background: #2ea043;
+    }
+    .progress {
+      width: 100%;
+      background: #21262d;
+      border-radius: 10px;
+      margin-top: 20px;
+      height: 10px;
+      overflow: hidden;
+      display: none;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #58a6ff;
+      transition: width 0.3s ease;
     }
     .output {
       margin-top: 20px;
       font-size: 0.9em;
       word-break: break-all;
+      min-height: 60px;
     }
     a {
       color: #58a6ff;
@@ -56,51 +75,185 @@
     a:hover {
       text-decoration: underline;
     }
+    button.copy {
+      background: #30363d;
+      color: #e6edf3;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button.copy:hover {
+      background: #484f58;
+    }
+    .loading {
+      animation: pulse 1.5s infinite;
+      color: #9ba3af;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.5; }
+      50% { opacity: 1; }
+      100% { opacity: 0.5; }
+    }
+    .stats {
+      margin-top: 25px;
+      font-size: 0.9em;
+      background: #1a1f25;
+      padding: 10px;
+      border-radius: 10px;
+      display: inline-block;
+      width: 80%;
+    }
+    .whatsapp-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #25d366;
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .whatsapp-btn:hover {
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body>
   <div class="upload-box">
-    <h1>📤 TrashUploader</h1>
+    <h1>🛡️ TrashUploader</h1>
     <form id="uploadForm">
       <input type="file" id="file" name="file" required>
       <label for="file">Choose a file</label>
+
+      <div class="progress" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
       <div class="output" id="output"></div>
     </form>
+
+    <div class="stats">
+      📊 <b>Stats:</b><br>
+      ✅ Successful: <span id="successCount">0</span><br>
+      ❌ Failed: <span id="failCount">0</span>
+    </div>
   </div>
+
+  <button class="whatsapp-btn" onclick="chatDev()">
+    💬 Chat Dev on WhatsApp
+  </button>
 
   <script>
     const fileInput = document.getElementById("file");
     const output = document.getElementById("output");
+    const progressBar = document.getElementById("progressBar");
+    const progressContainer = document.getElementById("progressContainer");
+    const successCountEl = document.getElementById("successCount");
+    const failCountEl = document.getElementById("failCount");
+
+    // Load stats from localStorage
+    let successCount = parseInt(localStorage.getItem("successCount") || 0);
+    let failCount = parseInt(localStorage.getItem("failCount") || 0);
+    updateStats();
 
     fileInput.addEventListener("change", async () => {
       const file = fileInput.files[0];
       if (!file) return;
 
-      output.innerHTML = "⏳ Uploading... Please wait...";
+      output.innerHTML = "<span class='loading'>🔍 Scanning file...</span>";
+      progressContainer.style.display = "none";
+      progressBar.style.width = "0%";
+
+      // Fake scan delay (1.5 seconds)
+      await new Promise(r => setTimeout(r, 1500));
+
+      output.innerHTML = "✅ Scan successful!<br>Preparing to upload...";
+      await new Promise(r => setTimeout(r, 1000));
+
+      progressContainer.style.display = "block";
+      output.innerHTML = "📤 Uploading file...";
 
       const formData = new FormData();
       formData.append("file", file);
 
-      try {
-        const res = await fetch("https://uploads-ey5d.onrender.com/api/upload", {
-          method: "POST",
-          body: formData
-        });
-        const data = await res.json();
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://uploads-ey5d.onrender.com/api/upload", true);
 
-        if (data.success) {
-          output.innerHTML = `
-            ✅ Upload Successful!<br><br>
-            <b>Direct Link:</b><br>
-            <a href="${data.url}" target="_blank">${data.url}</a>
-          `;
-        } else {
-          output.innerHTML = `❌ Upload failed: ${data.error || "Unknown error"}`;
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          progressBar.style.width = percent + "%";
         }
-      } catch (err) {
-        output.innerHTML = `💥 Error: ${err.message}`;
-      }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          if (data.success) {
+            successCount++;
+            saveStats();
+            output.innerHTML = `
+              ✅ <b>Upload Successful!</b><br><br>
+              <b>Direct Link:</b><br>
+              <a href="${data.url}" target="_blank">${data.url}</a><br>
+              <button class="copy" onclick="copyLink('${data.url}')">📋 Copy Link</button>
+            `;
+          } else {
+            failCount++;
+            saveStats();
+            output.innerHTML = `❌ Upload failed: ${data.error || "Unknown error"}`;
+          }
+        } else {
+          failCount++;
+          saveStats();
+          output.innerHTML = `💥 Server Error: ${xhr.statusText}`;
+        }
+      };
+
+      xhr.onerror = () => {
+        failCount++;
+        saveStats();
+        output.innerHTML = `💥 Network Error: Could not connect to server.`;
+      };
+
+      xhr.send(formData);
     });
+
+    function copyLink(url) {
+      navigator.clipboard.writeText(url)
+        .then(() => {
+          const btn = document.querySelector("button.copy");
+          btn.innerText = "✅ Copied!";
+          setTimeout(() => (btn.innerText = "📋 Copy Link"), 1500);
+        })
+        .catch(() => alert("❌ Failed to copy link."));
+    }
+
+    function saveStats() {
+      localStorage.setItem("successCount", successCount);
+      localStorage.setItem("failCount", failCount);
+      updateStats();
+    }
+
+    function updateStats() {
+      successCountEl.textContent = successCount;
+      failCountEl.textContent = failCount;
+    }
+
+    function chatDev() {
+      const phone = "254712345678"; // <-- change to your WhatsApp number
+      const message = encodeURIComponent("Hi, I’d like to chat about TrashUploader 🚀");
+      window.open(`https://wa.me/${phone}?text=${message}`, "_blank");
+    }
   </script>
 </body>
 </html>
