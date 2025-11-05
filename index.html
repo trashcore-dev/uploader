@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Files – TrashUploader</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #0d1117;
+      color: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #58a6ff;
+      margin-bottom: 20px;
+    }
+    .upload-box {
+      background: #161b22;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    label {
+      background: #238636;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-block;
+    }
+    label:hover {
+      background: #2ea043;
+    }
+    .output {
+      margin-top: 20px;
+      font-size: 0.9em;
+      word-break: break-all;
+    }
+    a {
+      color: #58a6ff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="upload-box">
+    <h1>📤 TrashUploader</h1>
+    <form id="uploadForm">
+      <input type="file" id="file" name="file" required>
+      <label for="file">Choose a file</label>
+      <div class="output" id="output"></div>
+    </form>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("file");
+    const output = document.getElementById("output");
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      output.innerHTML = "⏳ Uploading... Please wait...";
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await fetch("https://uploads-ey5d.onrender.com/api/upload", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          output.innerHTML = `
+            ✅ Upload Successful!<br><br>
+            <b>Direct Link:</b><br>
+            <a href="${data.url}" target="_blank">${data.url}</a>
+          `;
+        } else {
+          output.innerHTML = `❌ Upload failed: ${data.error || "Unknown error"}`;
+        }
+      } catch (err) {
+        output.innerHTML = `💥 Error: ${err.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
